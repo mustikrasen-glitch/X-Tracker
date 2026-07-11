@@ -50,7 +50,15 @@ async def main():
             body = (tw.rawContent or "")[:500]
             if last == 0:
                 break
-            tg(f"🐦 @{handle} posted:\n\n{body}\n\n{link}")
+            if tw.retweetedTweet:
+                kind = "🔁 retweeted"
+                link = tw.retweetedTweet.url
+                body = (tw.retweetedTweet.rawContent or "")[:500]
+            elif tw.inReplyToTweetId:
+                kind = "↩️ replied"
+            else:
+                kind = "🐦 posted"
+            tg(f"{kind} @{handle}:\n\n{body}\n\n{link}")
         if fresh:
             state[handle] = max(int(state.get(handle, 0)),
                                 max(int(t.id) for t in fresh))
