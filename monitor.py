@@ -43,8 +43,6 @@ async def main():
             continue
         fresh, last = [], int(state.get(handle, 0))
         async for tw in api.user_tweets(user.id, limit=20):
-            if tw.retweetedTweet or tw.inReplyToTweetId:
-                continue
             if int(tw.id) > last:
                 fresh.append(tw)
         for tw in sorted(fresh, key=lambda t: int(t.id)):
