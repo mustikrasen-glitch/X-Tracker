@@ -4,6 +4,7 @@ from twscrape import API
 USERS   = [u.strip() for u in os.environ["X_USERS"].split(",") if u.strip()]
 TG_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TG_CHAT  = os.environ["TELEGRAM_CHAT_ID"]
+TG_TOPIC = os.environ.get("TELEGRAM_TOPIC_ID", "").strip()
 AUTH     = os.environ["X_AUTH_TOKEN"]
 CT0      = os.environ["X_CT0"]
 
@@ -17,10 +18,13 @@ def save_state(s):
     STATE.write_text(json.dumps(s, indent=2))
 
 def tg(text):
+    payload = {"chat_id": TG_CHAT, "text": text,
+               "disable_web_page_preview": "false"}
+    if TG_TOPIC:
+        payload["message_thread_id"] = TG_TOPIC
     requests.post(
         f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
-        data={"chat_id": TG_CHAT, "text": text,
-              "disable_web_page_preview": "false"},
+        data=payload,
         timeout=30,
     ).raise_for_status()
 
