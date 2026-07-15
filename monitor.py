@@ -1,7 +1,7 @@
 import asyncio, json, os, pathlib, requests
 from twscrape import API
 
-USERS   = [u.strip() for u in os.environ["X_USERS"].split(",") if u.strip()]
+USERS    = [u.strip() for u in os.environ["X_USERS"].split(",") if u.strip()]
 TG_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TG_CHAT  = os.environ["TELEGRAM_CHAT_ID"]
 TG_TOPIC = os.environ.get("TELEGRAM_TOPIC_ID", "").strip()
@@ -45,11 +45,19 @@ async def main():
         async for tw in api.user_tweets(user.id, limit=20):
             if int(tw.id) > last:
                 fresh.append(tw)
+
+        # save FIRST so a killed run can never re-send
+        if fresh:
+            state[handle] = max(int(state.get(handle, 0)),
+                                max(int(t.id) for t in fresh))
+            save_state(state)
+
+        if last == 0:          # first sighting: baseline only, stay silent
+            continue
+
         for tw in sorted(fresh, key=lambda t: int(t.id)):
             link = f"https://x.com/{handle}/status/{tw.id}"
             body = (tw.rawContent or "")[:500]
-            if last == 0:
-                break
             if tw.retweetedTweet:
                 kind = "🔁 retweeted"
                 link = tw.retweetedTweet.url
@@ -59,10 +67,6 @@ async def main():
             else:
                 kind = "🐦 posted"
             tg(f"{kind} @{handle}:\n\n{body}\n\n{link}")
-        if fresh:
-            state[handle] = max(int(state.get(handle, 0)),
-                                max(int(t.id) for t in fresh))
-    save_state(state)
 
 async def loop():
     import time
