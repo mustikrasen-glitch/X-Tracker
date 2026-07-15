@@ -1,7 +1,5 @@
 name: x-monitor
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
