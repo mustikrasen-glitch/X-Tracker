@@ -64,4 +64,14 @@ async def main():
                                 max(int(t.id) for t in fresh))
     save_state(state)
 
-asyncio.run(main())
+async def loop():
+    import time
+    end = time.time() + 240
+    while time.time() < end:
+        try:
+            await main()
+        except Exception as e:
+            print("error:", e)
+        await asyncio.sleep(20)
+
+asyncio.run(loop())
